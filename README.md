@@ -44,3 +44,5 @@ Log Income and Expenses: Use the Income/Expense tab to enter all financial trans
 Handle Maintenance: When a maintenance issue arises, use the embedded Google Form to create a log entry. The form allows you to attach photos, and the data is securely saved to your Google Drive.
 
 Contact Management: Click on Contacts to access and manage your database of guests and contractors. You can add new contacts or edit existing ones as needed.
+
+PRIVACY POLICY - https://mermaidesk.com/privacy-policy/
