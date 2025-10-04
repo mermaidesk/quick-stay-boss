@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, DollarSign } from "lucide-react";
+import { Plus, DollarSign, Pencil } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -26,6 +26,7 @@ const Income = () => {
   const [incomes, setIncomes] = useState<any[]>([]);
   const [property, setProperty] = useState<any>(null);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     booking_date: "",
     guest_name: "",
@@ -79,36 +80,80 @@ const Income = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { error } = await supabase.from("income").insert({
-      ...formData,
-      property_id: property.id,
-    });
+    if (editingId) {
+      const { error } = await supabase
+        .from("income")
+        .update(formData)
+        .eq("id", editingId);
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add income record",
-        variant: "destructive",
-      });
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update income record",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Income record updated successfully",
+        });
+        setOpen(false);
+        setEditingId(null);
+        loadIncomes();
+        resetForm();
+      }
     } else {
-      toast({
-        title: "Success",
-        description: "Income record added successfully",
+      const { error } = await supabase.from("income").insert({
+        ...formData,
+        property_id: property.id,
       });
-      setOpen(false);
-      loadIncomes();
-      setFormData({
-        booking_date: "",
-        guest_name: "",
-        source: "",
-        check_in_date: "",
-        check_out_date: "",
-        nights: 0,
-        gross_income: 0,
-        fees: 0,
-        net_income: 0,
-      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to add income record",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Income record added successfully",
+        });
+        setOpen(false);
+        loadIncomes();
+        resetForm();
+      }
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      booking_date: "",
+      guest_name: "",
+      source: "",
+      check_in_date: "",
+      check_out_date: "",
+      nights: 0,
+      gross_income: 0,
+      fees: 0,
+      net_income: 0,
+    });
+  };
+
+  const handleEdit = (income: any) => {
+    setEditingId(income.id);
+    setFormData({
+      booking_date: income.booking_date,
+      guest_name: income.guest_name || "",
+      source: income.source || "",
+      check_in_date: income.check_in_date,
+      check_out_date: income.check_out_date,
+      nights: income.nights,
+      gross_income: income.gross_income,
+      fees: income.fees,
+      net_income: income.net_income,
+    });
+    setOpen(true);
   };
 
   const totalIncome = incomes.reduce((sum, item) => sum + Number(item.net_income), 0);
@@ -130,7 +175,7 @@ const Income = () => {
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Add Income Record</DialogTitle>
+              <DialogTitle>{editingId ? "Edit Income Record" : "Add Income Record"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -249,10 +294,14 @@ const Income = () => {
                 </div>
               </div>
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => {
+                  setOpen(false);
+                  setEditingId(null);
+                  resetForm();
+                }}>
                   Cancel
                 </Button>
-                <Button type="submit">Save Income</Button>
+                <Button type="submit">{editingId ? "Update Income" : "Save Income"}</Button>
               </div>
             </form>
           </DialogContent>
@@ -279,24 +328,42 @@ const Income = () => {
                 <TableHead>Gross</TableHead>
                 <TableHead>Fees</TableHead>
                 <TableHead>Net</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {incomes.map((income) => (
-                <TableRow key={income.id}>
-                  <TableCell>{income.booking_date}</TableCell>
-                  <TableCell>{income.guest_name || "-"}</TableCell>
-                  <TableCell>{income.source || "-"}</TableCell>
-                  <TableCell>{income.check_in_date}</TableCell>
-                  <TableCell>{income.check_out_date}</TableCell>
-                  <TableCell>{income.nights}</TableCell>
-                  <TableCell>${Number(income.gross_income).toFixed(2)}</TableCell>
-                  <TableCell>${Number(income.fees).toFixed(2)}</TableCell>
-                  <TableCell className="font-medium text-accent">
-                    ${Number(income.net_income).toFixed(2)}
+              {incomes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                    No income records yet. Click "Add Income" to get started.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                incomes.map((income) => (
+                  <TableRow key={income.id}>
+                    <TableCell>{income.booking_date}</TableCell>
+                    <TableCell>{income.guest_name || "-"}</TableCell>
+                    <TableCell>{income.source || "-"}</TableCell>
+                    <TableCell>{income.check_in_date}</TableCell>
+                    <TableCell>{income.check_out_date}</TableCell>
+                    <TableCell>{income.nights}</TableCell>
+                    <TableCell>${Number(income.gross_income).toFixed(2)}</TableCell>
+                    <TableCell>${Number(income.fees).toFixed(2)}</TableCell>
+                    <TableCell className="font-medium text-accent">
+                      ${Number(income.net_income).toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(income)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

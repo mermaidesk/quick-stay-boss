@@ -292,31 +292,39 @@ const Expenses = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredExpenses.map((expense) => (
-                <TableRow key={expense.id}>
-                  <TableCell>{expense.expense_date}</TableCell>
-                  <TableCell>{expense.vendor}</TableCell>
-                  <TableCell>{expense.description || "-"}</TableCell>
-                  <TableCell>{expense.category}</TableCell>
-                  <TableCell className="font-medium">
-                    ${Number(expense.amount).toFixed(2)}
-                  </TableCell>
-                  <TableCell>
-                    {expense.receipt_link ? (
-                      <a
-                        href={expense.receipt_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        View
-                      </a>
-                    ) : (
-                      "-"
-                    )}
+              {filteredExpenses.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    No expenses yet. Click "Add Expense" to get started.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredExpenses.map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell>{expense.expense_date}</TableCell>
+                    <TableCell>{expense.vendor}</TableCell>
+                    <TableCell>{expense.description || "-"}</TableCell>
+                    <TableCell>{expense.category}</TableCell>
+                    <TableCell className="font-medium">
+                      ${Number(expense.amount).toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      {expense.receipt_link ? (
+                        <a
+                          href={expense.receipt_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          View
+                        </a>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
