@@ -7,6 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
+// Helper function to extract calendar ID from iCal URL or return as is
+function extractCalendarId(url: string) {
+  // Matches both "calendar.google.com/calendar/ical/[calendarID]/public/basic.ics"
+  // and "calendar.google.com/calendar/embed?src=[calendarID]"
+  const icalMatch = url.match(/calendar\/ical\/([^/]+)\//);
+  if (icalMatch && icalMatch[1]) {
+    return icalMatch[1];
+  }
+  // If a direct calendar ID or embed URL was pasted, return as is
+  return url;
+}
+
 const Dashboard = () => {
   const [property, setProperty] = useState<any>(null);
   const [stats, setStats] = useState({
@@ -218,9 +230,7 @@ const Dashboard = () => {
             <div className="w-full bg-muted rounded-lg overflow-hidden" style={{ height: "600px" }}>
               <iframe
                 src={`https://calendar.google.com/calendar/embed?src=${encodeURIComponent(
-                  property.google_calendar_id.includes('calendar.google.com/calendar/ical/') 
-                    ? property.google_calendar_id.split('/ical/')[1].split('/')[0]
-                    : property.google_calendar_id
+                  extractCalendarId(property.google_calendar_id)
                 )}&mode=MONTH&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0`}
                 className="w-full h-full"
                 frameBorder="0"
