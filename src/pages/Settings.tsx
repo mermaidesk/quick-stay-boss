@@ -19,7 +19,7 @@ const Settings = () => {
     contacts_sheet_url: "",
     regulatory_sheet_url: "",
     documentation_sheet_url: "",
-    calendar_id: "", // <-- NEW FIELD FOR CALENDAR ID
+    calendar_id: "",
   });
 
   useEffect(() => {
@@ -38,8 +38,13 @@ const Settings = () => {
         .eq("user_id", user.id)
         .single();
 
+      // Debug logging
+      if (error) {
+        console.log("Supabase error code:", error.code);
+      }
+
       if (error && error.code === "PGRST116") {
-        // No row found for this user: it's OK, don't throw error
+        // No row found for this user: treat as blank, don't show error
         setSettings({
           expense_form_url: "",
           expense_sheet_url: "",
@@ -55,7 +60,17 @@ const Settings = () => {
         return;
       }
 
-      if (error) throw error;
+      if (error) {
+        // Only log/toast for real errors (not PGRST116)
+        console.error("Error loading settings:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load settings",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
 
       if (data) {
         setSettings({
