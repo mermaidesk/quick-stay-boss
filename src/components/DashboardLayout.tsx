@@ -115,16 +115,16 @@ const DashboardLayout = () => {
                   <Button
                     variant={isActive ? "default" : "ghost"}
                     className={cn(
-                      "w-full justify-start gap-3",
+                      "w-full justify-start gap-3 font-medium",
                       !sidebarOpen && "justify-center px-2",
                       isActive
                         ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground bg-transparent"
                     )}
                     onClick={() => navigate(item.href)}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" />
-                    {sidebarOpen && <span>{item.name}</span>}
+                    {sidebarOpen && <span className="text-sidebar-foreground">{item.name}</span>}
                   </Button>
                 </li>
               );
@@ -137,24 +137,24 @@ const DashboardLayout = () => {
           <Button
             variant="outline"
             className={cn(
-              "w-full gap-2 border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent",
+              "w-full gap-2 border-sidebar-border bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent/80 hover:text-sidebar-foreground",
               !sidebarOpen && "justify-center px-2"
             )}
             onClick={handleEmailClick}
           >
-            <Mail className="w-5 h-5 flex-shrink-0" />
-            {sidebarOpen && <span>Compose Email</span>}
+            <Mail className="w-5 h-5 flex-shrink-0 text-sidebar-foreground" />
+            {sidebarOpen && <span className="text-sidebar-foreground">Compose Email</span>}
           </Button>
           <Button
             variant="outline"
             className={cn(
-              "w-full gap-2 border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent",
+              "w-full gap-2 border-sidebar-border bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent/80 hover:text-sidebar-foreground",
               !sidebarOpen && "justify-center px-2"
             )}
             onClick={handleSignOut}
           >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            {sidebarOpen && <span>Sign Out</span>}
+            <LogOut className="w-5 h-5 flex-shrink-0 text-sidebar-foreground" />
+            {sidebarOpen && <span className="text-sidebar-foreground">Sign Out</span>}
           </Button>
         </div>
 
