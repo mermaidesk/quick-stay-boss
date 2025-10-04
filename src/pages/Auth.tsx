@@ -29,8 +29,8 @@ const Auth = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md flex-grow flex flex-col justify-center">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
             <Building2 className="w-8 h-8 text-primary" />
@@ -42,7 +42,6 @@ const Auth = () => {
             Manage your short-term rental with ease
           </p>
         </div>
-
         <div className="bg-card rounded-lg shadow-lg p-8 border border-border">
           <SupabaseAuth
             supabaseClient={supabase}
@@ -67,11 +66,22 @@ const Auth = () => {
             onlyThirdPartyProviders={false}
           />
         </div>
-
         <p className="text-center text-sm text-muted-foreground mt-6">
           Your data is secure and only accessible by you
         </p>
       </div>
+      
+      {/* Privacy Policy Footer */}
+      <footer className="w-full py-4 text-center">
+        
+          href="https://mermaidesk.github.io/mermaidesk-privacy-policy/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-muted-foreground hover:text-foreground underline"
+        >
+          Privacy Policy
+        </a>
+      </footer>
     </div>
   );
 };
