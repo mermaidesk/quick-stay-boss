@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   Building2,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ const navigation = [
   { name: "Contacts", href: "/dashboard/contacts", icon: Users },
   { name: "Tasks", href: "/dashboard/tasks", icon: CheckSquare },
   { name: "Documentation", href: "/dashboard/documentation", icon: FileText },
+  { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 const DashboardLayout = () => {
