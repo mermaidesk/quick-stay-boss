@@ -35,29 +35,6 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-      const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* ... your routes ... */}
-        </Routes>
-      </BrowserRouter>
-      {/* Add your footer below */}
-      <footer style={{ textAlign: 'center', padding: '1rem 0', background: '#f8f8f8' }}>
-        <a
-          href="https://mermaidesk.github.io/mermaidesk-privacy-policy/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Privacy Policy
-        </a>
-      </footer>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
     </TooltipProvider>
   </QueryClientProvider>
 );
