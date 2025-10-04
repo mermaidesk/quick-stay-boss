@@ -35,7 +35,7 @@ const Settings = () => {
       const { data, error } = await supabase
         .from("user_settings")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .single();
 
       // Debug logging
@@ -106,7 +106,7 @@ const Settings = () => {
       const { error } = await supabase
         .from("user_settings")
         .upsert({
-          user_id: user.id,
+          id: user.id,
           ...settings,
           updated_at: new Date().toISOString(),
         });
