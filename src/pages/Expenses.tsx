@@ -1,334 +1,180 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Receipt as ReceiptIcon } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ExternalLink, Receipt, FileSpreadsheet, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
-const IRS_CATEGORIES = [
-  "Advertising",
-  "Auto/Travel",
-  "Cleaning & Maintenance",
-  "Commissions",
-  "Insurance",
-  "Legal/Professional Fees",
-  "Management Fees",
-  "Mortgage Interest",
-  "Repairs",
-  "Supplies",
-  "Taxes & Licenses",
-  "Utilities",
-  "Other",
-];
-
 const Expenses = () => {
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [property, setProperty] = useState<any>(null);
-  const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState("");
-  const [formData, setFormData] = useState({
-    expense_date: "",
-    vendor: "",
-    description: "",
-    category: "",
-    amount: 0,
-    receipt_link: "",
-    notes: "",
-  });
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [expenseFormUrl, setExpenseFormUrl] = useState("");
+  const [expenseSheetUrl, setExpenseSheetUrl] = useState("");
 
   useEffect(() => {
-    loadProperty();
+    loadSettings();
   }, []);
 
-  useEffect(() => {
-    if (property) {
-      loadExpenses();
-    }
-  }, [property]);
+  const loadSettings = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-  const loadProperty = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+      const { data, error } = await supabase
+        .from("user_settings")
+        .select("expense_form_url, expense_sheet_url")
+        .eq("user_id", user.id)
+        .single();
 
-    const { data } = await supabase
-      .from("properties")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
+      if (error && error.code !== "PGRST116") {
+        throw error;
+      }
 
-    if (data) {
-      setProperty(data);
-    }
-  };
-
-  const loadExpenses = async () => {
-    const { data } = await supabase
-      .from("expenses")
-      .select("*")
-      .eq("property_id", property.id)
-      .order("expense_date", { ascending: false });
-
-    if (data) {
-      setExpenses(data);
+      if (data) {
+        setExpenseFormUrl(data.expense_form_url || "");
+        setExpenseSheetUrl(data.expense_sheet_url || "");
+      }
+    } catch (error) {
+      console.error("Error loading settings:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const { error } = await supabase.from("expenses").insert({
-      ...formData,
-      property_id: property.id,
-    });
-
-    if (error) {
+  const handleOpenForm = () => {
+    if (!expenseFormUrl) {
       toast({
-        title: "Error",
-        description: "Failed to add expense",
+        title: "Setup Required",
+        description: "Please configure your Expense Form URL in Settings",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Success",
-        description: "Expense added successfully",
-      });
-      setOpen(false);
-      loadExpenses();
-      setFormData({
-        expense_date: "",
-        vendor: "",
-        description: "",
-        category: "",
-        amount: 0,
-        receipt_link: "",
-        notes: "",
-      });
+      navigate("/dashboard/settings");
+      return;
     }
+    window.open(expenseFormUrl, "_blank");
   };
 
-  const filteredExpenses = expenses.filter((expense) =>
-    filter ? expense.category === filter : true
-  );
+  const handleOpenSheet = () => {
+    if (!expenseSheetUrl) {
+      toast({
+        title: "Setup Required",
+        description: "Please configure your Expense Sheet URL in Settings",
+        variant: "destructive",
+      });
+      navigate("/dashboard/settings");
+      return;
+    }
+    window.open(expenseSheetUrl, "_blank");
+  };
 
-  const totalExpenses = filteredExpenses.reduce(
-    (sum, item) => sum + Number(item.amount),
-    0
-  );
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  const isConfigured = expenseFormUrl || expenseSheetUrl;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Expenses</h1>
-          <p className="text-muted-foreground mt-1">Track your property expenses</p>
-        </div>
-
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Expense
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Add Expense</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="expense_date">Date</Label>
-                  <Input
-                    id="expense_date"
-                    type="date"
-                    value={formData.expense_date}
-                    onChange={(e) =>
-                      setFormData({ ...formData, expense_date: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="vendor">Vendor/Payee</Label>
-                  <Input
-                    id="vendor"
-                    value={formData.vendor}
-                    onChange={(e) =>
-                      setFormData({ ...formData, vendor: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2 col-span-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Input
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, category: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {IRS_CATEGORIES.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    step="0.01"
-                    value={formData.amount}
-                    onChange={(e) =>
-                      setFormData({ ...formData, amount: parseFloat(e.target.value) })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2 col-span-2">
-                  <Label htmlFor="receipt_link">Receipt Link</Label>
-                  <Input
-                    id="receipt_link"
-                    value={formData.receipt_link}
-                    onChange={(e) =>
-                      setFormData({ ...formData, receipt_link: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2 col-span-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Input
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) =>
-                      setFormData({ ...formData, notes: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">Save Expense</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+    <div className="max-w-6xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Expense Tracking</h1>
+        <p className="text-muted-foreground">
+          Track and manage all property expenses
+        </p>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <ReceiptIcon className="w-5 h-5 text-destructive" />
-            Total: ${totalExpenses.toFixed(2)}
-          </CardTitle>
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
-              {IRS_CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Vendor</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Receipt</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredExpenses.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    No expenses yet. Click "Add Expense" to get started.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredExpenses.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell>{expense.expense_date}</TableCell>
-                    <TableCell>{expense.vendor}</TableCell>
-                    <TableCell>{expense.description || "-"}</TableCell>
-                    <TableCell>{expense.category}</TableCell>
-                    <TableCell className="font-medium">
-                      ${Number(expense.amount).toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      {expense.receipt_link ? (
-                        <a
-                          href={expense.receipt_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          View
-                        </a>
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {!isConfigured && (
+        <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <Settings className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-1">
+                Setup Required
+              </h3>
+              <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-3">
+                Configure your Google Sheets and Forms links to get started.
+              </p>
+              <Button
+                size="sm"
+                onClick={() => navigate("/dashboard/settings")}
+                className="gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Go to Settings
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="bg-card rounded-lg border p-6">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="p-3 rounded-lg bg-primary/10">
+              <Receipt className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold mb-2">Submit Expense</h2>
+              <p className="text-sm text-muted-foreground">
+                Add a new expense with receipt upload using Google Form
+              </p>
+            </div>
+          </div>
+          <Button 
+            onClick={handleOpenForm} 
+            className="w-full gap-2"
+            disabled={!expenseFormUrl}
+          >
+            <Receipt className="w-4 h-4" />
+            Open Expense Form
+            <ExternalLink className="w-4 h-4 ml-auto" />
+          </Button>
+          <p className="text-xs text-muted-foreground mt-3">
+            📱 Perfect for mobile: Quickly snap and upload receipts on-the-go
+          </p>
+        </div>
+
+        <div className="bg-card rounded-lg border p-6">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="p-3 rounded-lg bg-green-500/10">
+              <FileSpreadsheet className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold mb-2">View & Edit</h2>
+              <p className="text-sm text-muted-foreground">
+                Open your expense spreadsheet to view, edit, or manually add entries
+              </p>
+            </div>
+          </div>
+          <Button 
+            onClick={handleOpenSheet}
+            variant="outline"
+            className="w-full gap-2"
+            disabled={!expenseSheetUrl}
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            Open Expense Sheet
+            <ExternalLink className="w-4 h-4 ml-auto" />
+          </Button>
+          <p className="text-xs text-muted-foreground mt-3">
+            💻 Best on desktop/tablet: Full spreadsheet editing capability
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-8 p-4 bg-muted rounded-lg">
+        <h3 className="font-semibold mb-2">Quick Tips:</h3>
+        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+          <li>Use the form when you need to upload a receipt photo</li>
+          <li>Open the sheet directly to manually add or edit expenses without receipts</li>
+          <li>Form responses automatically appear in your "Form Responses" sheet tab</li>
+          <li>Use the "Expenses" tab for manual entries and organization</li>
+        </ul>
+      </div>
     </div>
   );
 };
