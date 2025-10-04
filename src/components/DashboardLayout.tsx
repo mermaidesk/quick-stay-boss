@@ -119,12 +119,12 @@ const DashboardLayout = () => {
                       !sidebarOpen && "justify-center px-2",
                       isActive
                         ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground bg-transparent"
+                        : "bg-sidebar-accent/50 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     )}
                     onClick={() => navigate(item.href)}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" />
-                    {sidebarOpen && <span className="text-sidebar-foreground">{item.name}</span>}
+                    {sidebarOpen && <span>{item.name}</span>}
                   </Button>
                 </li>
               );

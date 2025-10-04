@@ -218,7 +218,9 @@ const Dashboard = () => {
             <div className="w-full bg-muted rounded-lg overflow-hidden" style={{ height: "600px" }}>
               <iframe
                 src={`https://calendar.google.com/calendar/embed?src=${encodeURIComponent(
-                  property.google_calendar_id
+                  property.google_calendar_id.includes('/ical/') 
+                    ? property.google_calendar_id.split('/ical/')[1].replace('/public/basic.ics', '')
+                    : property.google_calendar_id
                 )}&mode=MONTH&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0`}
                 className="w-full h-full"
                 frameBorder="0"
