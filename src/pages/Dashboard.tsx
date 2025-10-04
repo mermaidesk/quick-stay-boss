@@ -7,16 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
-// Helper function to extract calendar ID from iCal URL or return as is
-function extractCalendarId(url: string) {
-  // Matches both "calendar.google.com/calendar/ical/[calendarID]/public/basic.ics"
-  // and "calendar.google.com/calendar/embed?src=[calendarID]"
-  const icalMatch = url.match(/calendar\/ical\/([^/]+)\//);
-  if (icalMatch && icalMatch[1]) {
-    return icalMatch[1];
-  }
-  // If a direct calendar ID or embed URL was pasted, return as is
-  return url;
+// Helper function for Google Calendar ID
+function extractCalendarId(input: string) {
+  // If input is an iCal URL, extract the calendar ID (email or group id)
+  const icalMatch = input.match(/ical\/([^/]+)\//);
+  if (icalMatch && icalMatch[1]) return icalMatch[1];
+  // If input is a full embed URL, find src param
+  const embedMatch = input.match(/src=([^&]+)/);
+  if (embedMatch && embedMatch[1]) return decodeURIComponent(embedMatch[1]);
+  // Otherwise, assume it's a direct calendar ID
+  return input;
 }
 
 const Dashboard = () => {
@@ -27,7 +27,7 @@ const Dashboard = () => {
     netIncome: 0,
     upcomingBookings: 0,
   });
-  const [calendarUrl, setCalendarUrl] = useState("");
+  const [calendarIdInput, setCalendarIdInput] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -49,7 +49,7 @@ const Dashboard = () => {
       console.error("Error loading property:", error);
     } else if (data) {
       setProperty(data);
-      setCalendarUrl(data.google_calendar_id || "");
+      setCalendarIdInput(data.google_calendar_id || "");
     }
   };
 
@@ -105,42 +105,49 @@ const Dashboard = () => {
       const { error } = await supabase.from("properties").insert({
         user_id: user.id,
         property_name: "My Property",
-        google_calendar_id: calendarUrl,
+        google_calendar_id: calendarIdInput,
       });
 
       if (error) {
         toast({
           title: "Error",
-          description: "Failed to save calendar URL",
+          description: "Failed to save calendar ID",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Success",
-          description: "Calendar URL saved successfully",
+          description: "Calendar ID saved successfully",
         });
         loadProperty();
       }
     } else {
       const { error } = await supabase
         .from("properties")
-        .update({ google_calendar_id: calendarUrl })
+        .update({ google_calendar_id: calendarIdInput })
         .eq("id", property.id);
 
       if (error) {
         toast({
           title: "Error",
-          description: "Failed to save calendar URL",
+          description: "Failed to save calendar ID",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Success",
-          description: "Calendar URL saved successfully",
+          description: "Calendar ID saved successfully",
         });
+        loadProperty();
       }
     }
   };
+
+  // Build the Google Calendar embed URL
+  const calendarId = extractCalendarId(property?.google_calendar_id || "");
+  const embedUrl = calendarId
+    ? `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(calendarId)}&mode=MONTH&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0&ctz=America/New_York`
+    : "";
 
   return (
     <div className="space-y-6">
@@ -211,31 +218,33 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="calendar-url">Google Calendar iCal URL</Label>
+            <Label htmlFor="calendar-id">Google Calendar ID</Label>
             <div className="flex gap-2">
               <Input
-                id="calendar-url"
-                placeholder="Paste your Google Calendar iCal URL here"
-                value={calendarUrl}
-                onChange={(e) => setCalendarUrl(e.target.value)}
+                id="calendar-id"
+                placeholder="elliottenter@gmail.com"
+                value={calendarIdInput}
+                onChange={(e) => setCalendarIdInput(e.target.value)}
               />
               <Button onClick={handleSaveCalendar}>Save</Button>
             </div>
             <p className="text-sm text-muted-foreground">
-              Get your calendar's iCal URL from Google Calendar settings
+              Enter your calendar ID (like elliottenter@gmail.com or group calendar address).<br />
+              <strong>Do not paste the .ics link.</strong> Find your calendar ID in Google Calendar settings under "Integrate calendar".
             </p>
           </div>
 
-          {property?.google_calendar_id && (
+          {embedUrl ? (
             <div className="w-full bg-muted rounded-lg overflow-hidden" style={{ height: "600px" }}>
               <iframe
-                src={`https://calendar.google.com/calendar/embed?src=${encodeURIComponent(
-                  extractCalendarId(property.google_calendar_id)
-                )}&mode=MONTH&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0`}
+                src={embedUrl}
                 className="w-full h-full"
                 frameBorder="0"
+                title="Google Calendar"
               />
             </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No calendar to display.</p>
           )}
         </CardContent>
       </Card>
