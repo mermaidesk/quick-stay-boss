@@ -26,43 +26,58 @@ const Settings = () => {
   }, []);
 
   const loadSettings = async () => {
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  setLoading(true);
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-      const { data, error } = await supabase
-        .from("user_settings")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
+    const { data, error } = await supabase
+      .from("user_settings")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
 
-      if (error && error.code !== "PGRST116") {
-        throw error;
-      }
-
-      if (data) {
-        setSettings({
-          expense_form_url: data.expense_form_url || "",
-          expense_sheet_url: data.expense_sheet_url || "",
-          income_sheet_url: data.income_sheet_url || "",
-          maintenance_sheet_url: data.maintenance_sheet_url || "",
-          bookings_sheet_url: data.bookings_sheet_url || "",
-          contacts_sheet_url: data.contacts_sheet_url || "",
-          regulatory_sheet_url: data.regulatory_sheet_url || "",
-          documentation_sheet_url: data.documentation_sheet_url || "",
-        });
-      }
-    } catch (error) {
-      console.error("Error loading settings:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load settings",
-        variant: "destructive",
+    if (error && error.code === "PGRST116") {
+      // No row found for this user: it's OK, don't throw error
+      setSettings({
+        expense_form_url: "",
+        expense_sheet_url: "",
+        income_sheet_url: "",
+        maintenance_sheet_url: "",
+        bookings_sheet_url: "",
+        contacts_sheet_url: "",
+        regulatory_sheet_url: "",
+        documentation_sheet_url: "",
       });
-    } finally {
       setLoading(false);
+      return;
     }
+
+    if (error) throw error;
+
+    if (data) {
+      setSettings({
+        expense_form_url: data.expense_form_url || "",
+        expense_sheet_url: data.expense_sheet_url || "",
+        income_sheet_url: data.income_sheet_url || "",
+        maintenance_sheet_url: data.maintenance_sheet_url || "",
+        bookings_sheet_url: data.bookings_sheet_url || "",
+        contacts_sheet_url: data.contacts_sheet_url || "",
+        regulatory_sheet_url: data.regulatory_sheet_url || "",
+        documentation_sheet_url: data.documentation_sheet_url || "",
+      });
+    }
+  } catch (error) {
+    console.error("Error loading settings:", error);
+    toast({
+      title: "Error",
+      description: "Failed to load settings",
+      variant: "destructive",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
   };
 
   const saveSettings = async () => {
