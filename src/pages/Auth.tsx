@@ -9,14 +9,12 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/dashboard");
       }
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -71,10 +69,9 @@ const Auth = () => {
         </p>
       </div>
       
-      {/* Privacy Policy Footer */}
       <footer className="w-full py-4 text-center">
         
-          href="https://mermaidesk.github.io/mermaidesk-privacy-policy/"
+         <a href="https://mermaidesk.github.io/mermaidesk-privacy-policy/"
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm text-muted-foreground hover:text-foreground underline"
