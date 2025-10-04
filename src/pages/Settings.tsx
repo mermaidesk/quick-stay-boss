@@ -19,6 +19,7 @@ const Settings = () => {
     contacts_sheet_url: "",
     regulatory_sheet_url: "",
     documentation_sheet_url: "",
+    calendar_id: "", // <-- NEW FIELD FOR CALENDAR ID
   });
 
   useEffect(() => {
@@ -26,58 +27,59 @@ const Settings = () => {
   }, []);
 
   const loadSettings = async () => {
-  setLoading(true);
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const { data, error } = await supabase
-      .from("user_settings")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
+      const { data, error } = await supabase
+        .from("user_settings")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
 
-    if (error && error.code === "PGRST116") {
-      // No row found for this user: it's OK, don't throw error
-      setSettings({
-        expense_form_url: "",
-        expense_sheet_url: "",
-        income_sheet_url: "",
-        maintenance_sheet_url: "",
-        bookings_sheet_url: "",
-        contacts_sheet_url: "",
-        regulatory_sheet_url: "",
-        documentation_sheet_url: "",
+      if (error && error.code === "PGRST116") {
+        // No row found for this user: it's OK, don't throw error
+        setSettings({
+          expense_form_url: "",
+          expense_sheet_url: "",
+          income_sheet_url: "",
+          maintenance_sheet_url: "",
+          bookings_sheet_url: "",
+          contacts_sheet_url: "",
+          regulatory_sheet_url: "",
+          documentation_sheet_url: "",
+          calendar_id: "",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (error) throw error;
+
+      if (data) {
+        setSettings({
+          expense_form_url: data.expense_form_url || "",
+          expense_sheet_url: data.expense_sheet_url || "",
+          income_sheet_url: data.income_sheet_url || "",
+          maintenance_sheet_url: data.maintenance_sheet_url || "",
+          bookings_sheet_url: data.bookings_sheet_url || "",
+          contacts_sheet_url: data.contacts_sheet_url || "",
+          regulatory_sheet_url: data.regulatory_sheet_url || "",
+          documentation_sheet_url: data.documentation_sheet_url || "",
+          calendar_id: data.calendar_id || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error loading settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load settings",
+        variant: "destructive",
       });
+    } finally {
       setLoading(false);
-      return;
     }
-
-    if (error) throw error;
-
-    if (data) {
-      setSettings({
-        expense_form_url: data.expense_form_url || "",
-        expense_sheet_url: data.expense_sheet_url || "",
-        income_sheet_url: data.income_sheet_url || "",
-        maintenance_sheet_url: data.maintenance_sheet_url || "",
-        bookings_sheet_url: data.bookings_sheet_url || "",
-        contacts_sheet_url: data.contacts_sheet_url || "",
-        regulatory_sheet_url: data.regulatory_sheet_url || "",
-        documentation_sheet_url: data.documentation_sheet_url || "",
-      });
-    }
-  } catch (error) {
-    console.error("Error loading settings:", error);
-    toast({
-      title: "Error",
-      description: "Failed to load settings",
-      variant: "destructive",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
   };
 
   const saveSettings = async () => {
@@ -129,7 +131,7 @@ const Settings = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Settings</h1>
         <p className="text-muted-foreground">
-          Configure your Google Sheets and Forms links
+          Configure your Google Sheets, Forms, and Calendar links
         </p>
       </div>
 
@@ -142,6 +144,7 @@ const Settings = () => {
             <li>Create your Google Sheet with tabs for each category</li>
             <li>Create Google Forms for data entry (optional)</li>
             <li>Copy the URLs and paste them below</li>
+            <li>For calendar, use the Calendar ID (not the .ics link)</li>
             <li>Click Save to store your links</li>
           </ol>
         </div>
@@ -232,6 +235,20 @@ const Settings = () => {
               onChange={(e) => handleChange("documentation_sheet_url", e.target.value)}
             />
           </div>
+
+          <div>
+            <Label htmlFor="calendar_id">Google Calendar ID</Label>
+            <Input
+              id="calendar_id"
+              placeholder="elliottenter@gmail.com"
+              value={settings.calendar_id}
+              onChange={(e) => handleChange("calendar_id", e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Enter your Google Calendar ID (usually your Gmail address, not the .ics link). Example: <br />
+              <span className="font-mono text-xs">elliottenter@gmail.com</span>
+            </p>
+          </div>
         </div>
 
         <div className="flex gap-3 pt-4">
@@ -251,6 +268,8 @@ const Settings = () => {
           To get a sheet URL: Open your Google Sheet → Click "Share" → Copy link
           <br />
           To get a form URL: Open your Google Form → Click "Send" → Copy link
+          <br />
+          To get your Calendar ID: Open Google Calendar → Settings → "Integrate calendar" → Copy the "Calendar ID" (not the iCal address)
         </p>
       </div>
     </div>
