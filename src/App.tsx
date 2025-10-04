@@ -23,6 +23,7 @@ const App = () => (
           <Route path="/" element={<Navigate to="/auth" replace />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route path="settings" element={<Settings />} />
             <Route index element={<Dashboard />} />
             <Route path="income" element={<Income />} />
             <Route path="expenses" element={<Expenses />} />
@@ -32,7 +33,6 @@ const App = () => (
             <Route path="contacts" element={<Dashboard />} />
             <Route path="tasks" element={<Dashboard />} />
             <Route path="documentation" element={<Dashboard />} />
-            <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
