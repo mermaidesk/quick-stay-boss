@@ -8,6 +8,12 @@ import DashboardLayout from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Income from "./pages/Income";
 import Expenses from "./pages/Expenses";
+import Bookings from "./pages/Bookings";
+import Maintenance from "./pages/Maintenance";
+import Regulations from "./pages/Regulations";
+import Contacts from "./pages/Contacts";
+import Tasks from "./pages/Tasks";
+import Documentation from "./pages/Documentation";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
 
@@ -23,16 +29,16 @@ const App = () => (
           <Route path="/" element={<Navigate to="/auth" replace />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route path="settings" element={<Settings />} />
-            <Route index element={<Dashboard />} />
-            <Route path="income" element={<Income />} />
-            <Route path="expenses" element={<Expenses />} />
-            <Route path="bookings" element={<Dashboard />} />
-            <Route path="maintenance" element={<Dashboard />} />
-            <Route path="regulations" element={<Dashboard />} />
-            <Route path="contacts" element={<Dashboard />} />
-            <Route path="tasks" element={<Dashboard />} />
-            <Route path="documentation" element={<Dashboard />} />
+          <Route path="settings" element={<Settings />} />
+          <Route index element={<Dashboard />} />
+          <Route path="income" element={<Income />} />
+          <Route path="expenses" element={<Expenses />} />
+          <Route path="bookings" element={<Bookings />} />
+          <Route path="maintenance" element={<Maintenance />} />
+          <Route path="regulations" element={<Regulations />} />
+          <Route path="contacts" element={<Contacts />} />
+          <Route path="tasks" element={<Tasks />} />
+          <Route path="documentation" element={<Documentation />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
