@@ -24,8 +24,8 @@ const Expenses = () => {
       const { data, error } = await supabase
         .from("user_settings")
         .select("expense_form_url, expense_sheet_url")
-        .eq("user_id", user.id)
-        .single();
+        .eq("id", user.id)
+        .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
         throw error;

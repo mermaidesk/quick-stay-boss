@@ -28,11 +28,13 @@ const Dashboard = () => {
     upcomingBookings: 0,
   });
   const [calendarIdInput, setCalendarIdInput] = useState("");
+  const [userSettings, setUserSettings] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     loadProperty();
     loadStats();
+    loadUserSettings();
   }, []);
 
   const loadProperty = async () => {
@@ -43,13 +45,30 @@ const Dashboard = () => {
       .from("properties")
       .select("*")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (error && error.code !== "PGRST116") {
       console.error("Error loading property:", error);
     } else if (data) {
       setProperty(data);
-      setCalendarIdInput(data.google_calendar_id || "");
+    }
+  };
+
+  const loadUserSettings = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("user_settings")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error && error.code !== "PGRST116") {
+      console.error("Error loading user settings:", error);
+    } else if (data) {
+      setUserSettings(data);
+      setCalendarIdInput(data.calendar_id || "");
     }
   };
 
@@ -97,54 +116,34 @@ const Dashboard = () => {
   };
 
   const handleSaveCalendar = async () => {
-    if (!property) {
-      // Create property if it doesn't exist
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-      const { error } = await supabase.from("properties").insert({
-        user_id: user.id,
-        property_name: "My Property",
-        google_calendar_id: calendarIdInput,
+    const { error } = await supabase
+      .from("user_settings")
+      .upsert({
+        id: user.id,
+        calendar_id: calendarIdInput,
+        updated_at: new Date().toISOString(),
       });
 
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to save calendar ID",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Calendar ID saved successfully",
-        });
-        loadProperty();
-      }
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save calendar ID",
+        variant: "destructive",
+      });
     } else {
-      const { error } = await supabase
-        .from("properties")
-        .update({ google_calendar_id: calendarIdInput })
-        .eq("id", property.id);
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to save calendar ID",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Calendar ID saved successfully",
-        });
-        loadProperty();
-      }
+      toast({
+        title: "Success",
+        description: "Calendar ID saved successfully",
+      });
+      loadUserSettings();
     }
   };
 
   // Build the Google Calendar embed URL
-  const calendarId = extractCalendarId(property?.google_calendar_id || "");
+  const calendarId = extractCalendarId(userSettings?.calendar_id || "");
   const embedUrl = calendarId
     ? `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(calendarId)}&mode=MONTH&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0&ctz=America/New_York`
     : "";

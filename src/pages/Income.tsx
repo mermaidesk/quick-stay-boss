@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, DollarSign, Pencil } from "lucide-react";
+import { Plus, DollarSign, Pencil, ExternalLink } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 const Income = () => {
   const [incomes, setIncomes] = useState<any[]>([]);
   const [property, setProperty] = useState<any>(null);
+  const [userSettings, setUserSettings] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -42,6 +43,7 @@ const Income = () => {
 
   useEffect(() => {
     loadProperty();
+    loadUserSettings();
   }, []);
 
   useEffect(() => {
@@ -58,10 +60,25 @@ const Income = () => {
       .from("properties")
       .select("*")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (data) {
       setProperty(data);
+    }
+  };
+
+  const loadUserSettings = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("user_settings")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (data) {
+      setUserSettings(data);
     }
   };
 
@@ -166,7 +183,17 @@ const Income = () => {
           <p className="text-muted-foreground mt-1">Track your rental income</p>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
+        <div className="flex gap-2">
+          {userSettings?.income_sheet_url && (
+            <Button
+              variant="outline"
+              onClick={() => window.open(userSettings.income_sheet_url, "_blank")}
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Open Sheet
+            </Button>
+          )}
+          <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
@@ -306,6 +333,7 @@ const Income = () => {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card>
