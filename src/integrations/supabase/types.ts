@@ -382,6 +382,7 @@ export type Database = {
       user_settings: {
         Row: {
           bookings_sheet_url: string | null
+          business_name: string | null
           calendar_id: string | null
           contacts_sheet_url: string | null
           created_at: string | null
@@ -390,12 +391,14 @@ export type Database = {
           expense_sheet_url: string | null
           id: string
           income_sheet_url: string | null
+          logo_url: string | null
           maintenance_sheet_url: string | null
           regulatory_sheet_url: string | null
           updated_at: string | null
         }
         Insert: {
           bookings_sheet_url?: string | null
+          business_name?: string | null
           calendar_id?: string | null
           contacts_sheet_url?: string | null
           created_at?: string | null
@@ -404,12 +407,14 @@ export type Database = {
           expense_sheet_url?: string | null
           id: string
           income_sheet_url?: string | null
+          logo_url?: string | null
           maintenance_sheet_url?: string | null
           regulatory_sheet_url?: string | null
           updated_at?: string | null
         }
         Update: {
           bookings_sheet_url?: string | null
+          business_name?: string | null
           calendar_id?: string | null
           contacts_sheet_url?: string | null
           created_at?: string | null
@@ -418,6 +423,7 @@ export type Database = {
           expense_sheet_url?: string | null
           id?: string
           income_sheet_url?: string | null
+          logo_url?: string | null
           maintenance_sheet_url?: string | null
           regulatory_sheet_url?: string | null
           updated_at?: string | null

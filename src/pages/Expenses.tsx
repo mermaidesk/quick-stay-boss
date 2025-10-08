@@ -146,23 +146,28 @@ const Expenses = () => {
             <div className="flex-1">
               <h2 className="text-xl font-semibold mb-2">View & Edit</h2>
               <p className="text-sm text-muted-foreground">
-                Open your expense spreadsheet to view, edit, or manually add entries
+                {expenseSheetUrl ? "Your expense sheet is embedded below" : "Configure your expense sheet URL in Settings"}
               </p>
             </div>
           </div>
-          <Button 
-            onClick={handleOpenSheet}
-            variant="outline"
-            className="w-full gap-2"
-            disabled={!expenseSheetUrl}
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            Open Expense Sheet
-            <ExternalLink className="w-4 h-4 ml-auto" />
-          </Button>
-          <p className="text-xs text-muted-foreground mt-3">
-            💻 Best on desktop/tablet: Full spreadsheet editing capability
-          </p>
+          {expenseSheetUrl ? (
+            <div className="w-full h-[400px] mt-4">
+              <iframe
+                src={expenseSheetUrl.replace(/\/edit.*/, '/preview')}
+                className="w-full h-full border-0 rounded"
+                title="Expense Sheet"
+              />
+            </div>
+          ) : (
+            <Button 
+              onClick={() => navigate("/dashboard/settings")}
+              variant="outline"
+              className="w-full gap-2 mt-4"
+            >
+              <Settings className="w-4 h-4" />
+              Go to Settings
+            </Button>
+          )}
         </div>
       </div>
 

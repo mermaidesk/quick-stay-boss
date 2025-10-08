@@ -38,6 +38,8 @@ const navigation = [
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userEmail, setUserEmail] = useState<string>("");
+  const [businessName, setBusinessName] = useState<string>("Property PMS");
+  const [logoUrl, setLogoUrl] = useState<string>("");
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -49,6 +51,7 @@ const DashboardLayout = () => {
         navigate("/auth");
       } else {
         setUserEmail(session.user.email || "");
+        loadBusinessSettings(session.user.id);
       }
     });
 
@@ -64,6 +67,19 @@ const DashboardLayout = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const loadBusinessSettings = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_settings")
+      .select("business_name, logo_url")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (data) {
+      setBusinessName(data.business_name || "Property PMS");
+      setLogoUrl(data.logo_url || "");
+    }
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -91,9 +107,13 @@ const DashboardLayout = () => {
         <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
           {sidebarOpen && (
             <div className="flex items-center gap-2">
-              <Building2 className="w-6 h-6 text-sidebar-primary" />
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="w-8 h-8 object-contain" />
+              ) : (
+                <Building2 className="w-6 h-6 text-sidebar-primary" />
+              )}
               <span className="font-semibold text-sidebar-foreground">
-                Property PMS
+                {businessName}
               </span>
             </div>
           )}

@@ -46,18 +46,13 @@ const Maintenance = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {sheetUrl ? (
-            <>
-              <p className="text-sm text-muted-foreground">
-                Your maintenance tracking sheet is configured. Click below to open it.
-              </p>
-              <Button
-                onClick={() => window.open(sheetUrl, "_blank")}
-                className="gap-2"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Open Maintenance Sheet
-              </Button>
-            </>
+            <div className="w-full h-[600px]">
+              <iframe
+                src={sheetUrl.replace(/\/edit.*/, '/preview')}
+                className="w-full h-full border-0 rounded"
+                title="Maintenance Sheet"
+              />
+            </div>
           ) : (
             <>
               <p className="text-sm text-muted-foreground">

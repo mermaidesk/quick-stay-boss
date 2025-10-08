@@ -336,6 +336,23 @@ const Income = () => {
         </div>
       </div>
 
+      {userSettings?.income_sheet_url && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Income Sheet</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="w-full h-[600px]">
+              <iframe
+                src={userSettings.income_sheet_url.replace(/\/edit.*/, '/preview')}
+                className="w-full h-full border-0 rounded"
+                title="Income Sheet"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

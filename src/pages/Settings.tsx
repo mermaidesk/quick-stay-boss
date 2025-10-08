@@ -11,6 +11,8 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
+    business_name: "",
+    logo_url: "",
     expense_form_url: "",
     expense_sheet_url: "",
     income_sheet_url: "",
@@ -46,6 +48,8 @@ const Settings = () => {
       if (error && error.code === "PGRST116") {
         // No row found for this user: treat as blank, don't show error
         setSettings({
+          business_name: "",
+          logo_url: "",
           expense_form_url: "",
           expense_sheet_url: "",
           income_sheet_url: "",
@@ -74,6 +78,8 @@ const Settings = () => {
 
       if (data) {
         setSettings({
+          business_name: data.business_name || "",
+          logo_url: data.logo_url || "",
           expense_form_url: data.expense_form_url || "",
           expense_sheet_url: data.expense_sheet_url || "",
           income_sheet_url: data.income_sheet_url || "",
@@ -165,6 +171,32 @@ const Settings = () => {
         </div>
 
         <div className="space-y-4">
+          <div>
+            <Label htmlFor="business_name">Business Name</Label>
+            <Input
+              id="business_name"
+              placeholder="My Property Business"
+              value={settings.business_name}
+              onChange={(e) => handleChange("business_name", e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              This will be displayed in the sidebar
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="logo_url">Logo URL (optional)</Label>
+            <Input
+              id="logo_url"
+              placeholder="https://example.com/logo.png"
+              value={settings.logo_url}
+              onChange={(e) => handleChange("logo_url", e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Enter a URL to your business logo image
+            </p>
+          </div>
+
           <div>
             <Label htmlFor="expense_form_url">Expense Form URL</Label>
             <Input
