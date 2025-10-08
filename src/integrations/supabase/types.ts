@@ -379,6 +379,39 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          property_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          property_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          property_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           bookings_sheet_url: string | null

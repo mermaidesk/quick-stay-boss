@@ -69,11 +69,15 @@ const DashboardLayout = () => {
   }, [navigate]);
 
   const loadBusinessSettings = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("user_settings")
       .select("business_name, logo_url")
       .eq("id", userId)
       .maybeSingle();
+
+    if (error) {
+      console.error("Error loading business settings:", error);
+    }
 
     if (data) {
       setBusinessName(data.business_name || "Property PMS");
@@ -106,22 +110,25 @@ const DashboardLayout = () => {
         {/* Logo & Toggle */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
           {sidebarOpen && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-8 h-8 object-contain" />
+                <img src={logoUrl} alt={businessName} className="w-10 h-10 object-contain flex-shrink-0" />
               ) : (
-                <Building2 className="w-6 h-6 text-sidebar-primary" />
+                <Building2 className="w-8 h-8 text-sidebar-primary flex-shrink-0" />
               )}
-              <span className="font-semibold text-sidebar-foreground">
+              <span className="font-semibold text-sidebar-foreground truncate">
                 {businessName}
               </span>
             </div>
+          )}
+          {!sidebarOpen && logoUrl && (
+            <img src={logoUrl} alt={businessName} className="w-8 h-8 object-contain mx-auto" />
           )}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-sidebar-foreground hover:bg-sidebar-accent"
+            className="text-sidebar-foreground hover:bg-sidebar-accent flex-shrink-0"
           >
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
